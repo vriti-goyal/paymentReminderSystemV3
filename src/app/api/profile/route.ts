@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { encrypt } from "@/lib/encryption";
 
 export async function GET() {
   try {
@@ -24,6 +25,7 @@ export async function GET() {
         email: true,
         businessName: true,
         image: true,
+        emailPass: true,
       },
     });
 
@@ -34,7 +36,12 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(user);
+    const responseUser = {
+      ...user,
+      emailPass: user.emailPass ? "••••••••••••" : null,
+    };
+
+    return NextResponse.json(responseUser);
   } catch (error) {
     console.error("PROFILE_GET_ERROR", error);
     return NextResponse.json(
@@ -56,13 +63,28 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { name, businessName, image } = body;
+    const { name, businessName, image, emailPass } = body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       return NextResponse.json(
         { message: "Name is required" },
         { status: 400 }
       );
+    }
+
+    let updatedEmailPass: string | undefined = undefined;
+
+    if (emailPass === "••••••••••••") {
+      // Unchanged, do nothing
+      updatedEmailPass = undefined;
+    } else if (!emailPass || emailPass.trim() === "") {
+      return NextResponse.json(
+        { message: "Gmail App Password is required" },
+        { status: 400 }
+      );
+    } else {
+      // New password entered, encrypt it
+      updatedEmailPass = encrypt(emailPass.trim());
     }
 
     const updatedUser = await prisma.user.update({
@@ -73,6 +95,7 @@ export async function PUT(request: Request) {
         name: name.trim(),
         businessName: businessName ? businessName.trim() : null,
         image: image || null,
+        ...(updatedEmailPass !== undefined ? { emailPass: updatedEmailPass } : {}),
       },
       select: {
         id: true,
@@ -80,12 +103,18 @@ export async function PUT(request: Request) {
         email: true,
         businessName: true,
         image: true,
+        emailPass: true,
       },
     });
 
+    const responseUser = {
+      ...updatedUser,
+      emailPass: updatedUser.emailPass ? "••••••••••••" : null,
+    };
+
     return NextResponse.json({
       message: "Profile updated successfully",
-      user: updatedUser,
+      user: responseUser,
     });
   } catch (error) {
     console.error("PROFILE_PUT_ERROR", error);

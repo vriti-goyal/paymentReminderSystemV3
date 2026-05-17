@@ -49,6 +49,7 @@ model User {
   name          String?
   email         String     @unique
   password      String?
+  emailPass     String?
   businessName  String?
   image         String?
 

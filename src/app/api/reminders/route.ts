@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendPaymentReminderEmail } from "@/lib/email";
+import { decrypt } from "@/lib/encryption";
 
 function formatCurrency(value: unknown) {
   return `₹${Number(value).toLocaleString("en-IN")}`;
@@ -181,10 +182,17 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
         invoiceStatus: invoice.status,
         isOverdue: invoice.status === "OVERDUE",
         reminderMessage: message,
+        senderEmail: invoice.user.email,
+        senderPass: invoice.user.emailPass ? decrypt(invoice.user.emailPass) : undefined,
       });
 
       if (!emailResponse.success) {
-        throw new Error("Failed to send email");
+        const errorMsg = (emailResponse.error as any)?.code === "EAUTH"
+          ? "Gmail authentication failed. Please verify that your Gmail App Password in settings is correct."
+          : "Failed to send email via SMTP server.";
+        const customError = new Error(errorMsg) as any;
+        customError.status = 400;
+        throw customError;
       }
 
       const updatedReminder = await prisma.reminder.update({
@@ -205,7 +213,7 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
         },
         { status: 201 }
       );
-    } catch (emailError) {
+    } catch (emailError: any) {
       console.error("RESEND_EMAIL_ERROR", emailError);
 
       const failedReminder = await prisma.reminder.update({
@@ -219,10 +227,10 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
 
       return NextResponse.json(
         {
-          message: "Reminder saved but email sending failed",
+          message: emailError.message || "Reminder saved but email sending failed",
           reminder: failedReminder,
         },
-        { status: 500 }
+        { status: emailError.status || 500 }
       );
     }
   } catch (error) {

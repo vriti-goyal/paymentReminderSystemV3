@@ -234,6 +234,7 @@ import { NextResponse } from "next/server";
 import { ReminderStatus, ReminderType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendPaymentReminderEmail } from "@/lib/email";
+import { decrypt } from "@/lib/encryption";
 
 function startOfDay(date: Date) {
   const result = new Date(date);
@@ -325,6 +326,8 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
       invoiceStatus: invoice.status,
       isOverdue: invoice.status === "OVERDUE",
       reminderMessage: stage.messageText,
+      senderEmail: invoice.user.email,
+      senderPass: invoice.user.emailPass ? decrypt(invoice.user.emailPass) : undefined,
     });
 
     if (!emailResponse.success) {

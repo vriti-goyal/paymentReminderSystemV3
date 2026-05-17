@@ -1,13 +1,30 @@
 import nodemailer from "nodemailer";
 
-// Create reusable transporter object using the default SMTP transport
-const transporter = nodemailer.createTransport({
+// Default system SMTP transporter pool
+const defaultTransporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
+
+/**
+ * Returns a custom transporter if user credentials are provided,
+ * otherwise falls back to the system transporter.
+ */
+function getTransporter(userEmail?: string, userPass?: string) {
+  if (userEmail && userPass) {
+    return nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: userEmail,
+        pass: userPass,
+      },
+    });
+  }
+  return defaultTransporter;
+}
 
 interface EmailParams {
   to: string;
@@ -17,6 +34,8 @@ interface EmailParams {
   dueDate: string;
   businessName: string;
   invoiceStatus?: string;
+  senderEmail?: string;
+  senderPass?: string;
 }
 
 // Reusable styling for all emails
@@ -54,7 +73,7 @@ const getStatusBadge = (status: string) => {
 
 export async function sendPaymentReminderEmail(params: EmailParams & { daysBeforeDue?: number, isOverdue?: boolean, reminderMessage?: string }) {
   try {
-    const { to, customerName, invoiceNumber, amountDue, dueDate, businessName, invoiceStatus = "PENDING", isOverdue, daysBeforeDue, reminderMessage } = params;
+    const { to, customerName, invoiceNumber, amountDue, dueDate, businessName, invoiceStatus = "PENDING", isOverdue, daysBeforeDue, reminderMessage, senderEmail, senderPass } = params;
 
     let subject = `Payment Reminder: Invoice ${invoiceNumber}`;
     let headingTitle = "Payment Reminder";
@@ -130,9 +149,13 @@ Regards,
 ${businessName}
     `.trim();
 
+    const transporter = getTransporter(senderEmail, senderPass);
+    const fromEmail = senderEmail || process.env.EMAIL_USER;
+
     const info = await transporter.sendMail({
-      from: `"${businessName}" <${process.env.EMAIL_USER}>`,
+      from: `"${businessName}" <${fromEmail}>`,
       to,
+      replyTo: senderEmail || fromEmail,
       subject,
       text,
       html,
@@ -147,7 +170,7 @@ ${businessName}
 
 export async function sendInvoiceCreatedEmail(params: EmailParams) {
   try {
-    const { to, customerName, invoiceNumber, amountDue, dueDate, businessName } = params;
+    const { to, customerName, invoiceNumber, amountDue, dueDate, businessName, senderEmail, senderPass } = params;
 
     const subject = `New Invoice: ${invoiceNumber} from ${businessName}`;
 
@@ -191,9 +214,13 @@ export async function sendInvoiceCreatedEmail(params: EmailParams) {
       </div>
     `;
 
+    const transporter = getTransporter(senderEmail, senderPass);
+    const fromEmail = senderEmail || process.env.EMAIL_USER;
+
     const info = await transporter.sendMail({
-      from: `"${businessName}" <${process.env.EMAIL_USER}>`,
+      from: `"${businessName}" <${fromEmail}>`,
       to,
+      replyTo: senderEmail || fromEmail,
       subject,
       html,
     });
@@ -207,7 +234,7 @@ export async function sendInvoiceCreatedEmail(params: EmailParams) {
 
 export async function sendPaymentReceivedEmail(params: EmailParams & { amountPaid: string }) {
   try {
-    const { to, customerName, invoiceNumber, amountDue, businessName, amountPaid } = params;
+    const { to, customerName, invoiceNumber, amountDue, businessName, amountPaid, senderEmail, senderPass } = params;
 
     const subject = `Payment Received: Invoice ${invoiceNumber}`;
 
@@ -252,9 +279,13 @@ export async function sendPaymentReceivedEmail(params: EmailParams & { amountPai
       </div>
     `;
 
+    const transporter = getTransporter(senderEmail, senderPass);
+    const fromEmail = senderEmail || process.env.EMAIL_USER;
+
     const info = await transporter.sendMail({
-      from: `"${businessName}" <${process.env.EMAIL_USER}>`,
+      from: `"${businessName}" <${fromEmail}>`,
       to,
+      replyTo: senderEmail || fromEmail,
       subject,
       html,
     });
