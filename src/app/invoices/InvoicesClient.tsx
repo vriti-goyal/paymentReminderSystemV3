@@ -249,6 +249,7 @@ export default function InvoicesClient({ user, openInvoiceId }: InvoicesClientPr
     }
   }
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<"invoice" | "payment">("invoice");
 
@@ -409,6 +410,7 @@ export default function InvoicesClient({ user, openInvoiceId }: InvoicesClientPr
 
   async function handleSendReminder(invoiceId: string) {
     setError("");
+    setSuccess("");
 
     const response = await fetch("/api/reminders", {
       method: "POST",
@@ -425,7 +427,10 @@ export default function InvoicesClient({ user, openInvoiceId }: InvoicesClientPr
       return;
     }
 
-    alert("Reminder email sent successfully");
+    setSuccess("Reminder email sent successfully!");
+    setTimeout(() => {
+      setSuccess("");
+    }, 5000);
     fetchInvoices(search, filter);
   }
 
@@ -500,6 +505,12 @@ export default function InvoicesClient({ user, openInvoiceId }: InvoicesClientPr
         {error && (
           <div className="rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-600 border border-red-100 shadow-sm">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-600 border border-emerald-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+            {success}
           </div>
         )}
 
