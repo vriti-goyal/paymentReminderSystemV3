@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { InvoiceStatus } from "@prisma/client";
+
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardShell from "@/components/DashboardShell";
@@ -30,11 +30,11 @@ export default async function DashboardPage() {
         lt: today,
       },
       status: {
-        in: [InvoiceStatus.PENDING, InvoiceStatus.PARTIALLY_PAID],
+        in: ["PENDING", "PARTIALLY_PAID"],
       },
     },
     data: {
-      status: InvoiceStatus.OVERDUE,
+      status: "OVERDUE",
     },
   });
 
@@ -58,25 +58,25 @@ export default async function DashboardPage() {
     prisma.invoice.count({
       where: {
         userId,
-        status: InvoiceStatus.PAID,
+        status: "PAID",
       },
     }),
     prisma.invoice.count({
       where: {
         userId,
-        status: InvoiceStatus.PENDING,
+        status: "PENDING",
       },
     }),
     prisma.invoice.count({
       where: {
         userId,
-        status: InvoiceStatus.PARTIALLY_PAID,
+        status: "PARTIALLY_PAID",
       },
     }),
     prisma.invoice.count({
       where: {
         userId,
-        status: InvoiceStatus.OVERDUE,
+        status: "OVERDUE",
       },
     }),
     prisma.reminder.count({
@@ -110,12 +110,12 @@ export default async function DashboardPage() {
 
   // 1. Total Unpaid Amount (Outstanding Dues)
   const totalOutstanding = allInvoices.reduce((sum, inv) =>
-    inv.status !== InvoiceStatus.CANCELLED ? sum + Number(inv.balanceAmount) : sum, 0
+    inv.status !== "CANCELLED" ? sum + Number(inv.balanceAmount) : sum, 0
   );
 
   // 2. Total Overdue Amount
   const totalOverdue = allInvoices.reduce((sum, inv) =>
-    inv.status === InvoiceStatus.OVERDUE ? sum + Number(inv.balanceAmount) : sum, 0
+    inv.status === "OVERDUE" ? sum + Number(inv.balanceAmount) : sum, 0
   );
 
   // 3. Pending this week
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
   endOfWeek.setHours(23, 59, 59, 999);
 
   const pendingThisWeek = allInvoices.reduce((sum, inv) => {
-    const isPendingOrPartial = inv.status === InvoiceStatus.PENDING || inv.status === InvoiceStatus.PARTIALLY_PAID;
+    const isPendingOrPartial = inv.status === "PENDING" || inv.status === "PARTIALLY_PAID";
     const dueTime = new Date(inv.dueDate).getTime();
     const isThisWeek = dueTime >= startOfWeek.getTime() && dueTime <= endOfWeek.getTime();
     return (isPendingOrPartial && isThisWeek) ? sum + Number(inv.balanceAmount) : sum;
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
 
   const pendingThisMonth = allInvoices.reduce((sum, inv) => {
-    const isPendingOrPartial = inv.status === InvoiceStatus.PENDING || inv.status === InvoiceStatus.PARTIALLY_PAID;
+    const isPendingOrPartial = inv.status === "PENDING" || inv.status === "PARTIALLY_PAID";
     const dueTime = new Date(inv.dueDate).getTime();
     const isThisMonth = dueTime >= startOfMonth.getTime() && dueTime <= endOfMonth.getTime();
     return (isPendingOrPartial && isThisMonth) ? sum + Number(inv.balanceAmount) : sum;
@@ -150,11 +150,11 @@ export default async function DashboardPage() {
 
   // Helper to map invoice statuses to appropriate color badges
   const statusBadgeStyles = {
-    [InvoiceStatus.PAID]: "bg-green-50 text-green-700 border-green-200",
-    [InvoiceStatus.PENDING]: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    [InvoiceStatus.PARTIALLY_PAID]: "bg-orange-50 text-orange-700 border-orange-200",
-    [InvoiceStatus.OVERDUE]: "bg-red-50 text-red-700 border-red-200",
-    [InvoiceStatus.CANCELLED]: "bg-gray-50 text-gray-400 border-gray-200",
+    PAID: "bg-green-50 text-green-700 border-green-200",
+    PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    PARTIALLY_PAID: "bg-orange-50 text-orange-700 border-orange-200",
+    OVERDUE: "bg-red-50 text-red-700 border-red-200",
+    CANCELLED: "bg-gray-50 text-gray-400 border-gray-200",
   };
 
   return (

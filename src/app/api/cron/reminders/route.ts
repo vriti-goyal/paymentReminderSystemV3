@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ReminderStatus, ReminderType } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 
@@ -110,8 +110,8 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
       userId: invoice.userId,
       customerId: invoice.customerId,
       invoiceId: invoice.id,
-      reminderType: ReminderType.BEFORE_DUE_DATE,
-      status: ReminderStatus.PENDING,
+      reminderType: "BEFORE_DUE_DATE",
+      status: "PENDING",
       subject,
       message,
       sentTo: invoice.customer.email,
@@ -137,7 +137,7 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
         id: reminder.id,
       },
       data: {
-        status: ReminderStatus.SENT,
+        status: "SENT",
         resendEmailId: emailResponse.data?.id,
         sentAt: new Date(),
       },
@@ -157,7 +157,7 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
         id: reminder.id,
       },
       data: {
-        status: ReminderStatus.FAILED,
+        status: "FAILED",
       },
     });
 
@@ -243,8 +243,8 @@ export async function GET(request: Request) {
         const alreadySent = await prisma.reminder.findFirst({
           where: {
             invoiceId: invoice.id,
-            reminderType: ReminderType.BEFORE_DUE_DATE,
-            status: ReminderStatus.SENT,
+            reminderType: "BEFORE_DUE_DATE",
+            status: "SENT",
             subject: {
               contains: `due in ${daysBeforeDue} days`,
             },

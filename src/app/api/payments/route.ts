@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { InvoiceStatus, PaymentMode, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -12,18 +12,18 @@ function calculateInvoiceStatus(
   const today = new Date();
 
   if (paidAmount >= amount) {
-    return InvoiceStatus.PAID;
+    return "PAID";
   }
 
   if (paidAmount > 0 && paidAmount < amount) {
-    return InvoiceStatus.PARTIALLY_PAID;
+    return "PARTIALLY_PAID";
   }
 
   if (dueDate < today) {
-    return InvoiceStatus.OVERDUE;
+    return "OVERDUE";
   }
 
-  return InvoiceStatus.PENDING;
+  return "PENDING";
 }
 
 export async function POST(request: Request) {
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
           customerId: invoice.customerId,
           invoiceId: invoice.id,
           amountPaid: new Prisma.Decimal(paymentAmount),
-          paymentMode: paymentMode as PaymentMode,
+          paymentMode: paymentMode,
           remarks,
         },
       });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { ReminderStatus, ReminderType } from "@prisma/client";
+
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
@@ -196,9 +196,9 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
         invoiceId: invoice.id,
         reminderType:
           invoice.status === "OVERDUE"
-            ? ReminderType.OVERDUE
-            : ReminderType.BEFORE_DUE_DATE,
-        status: ReminderStatus.PENDING,
+            ? "OVERDUE"
+            : "BEFORE_DUE_DATE",
+        status: "PENDING",
         subject,
         message,
         sentTo: invoice.customer.email,
@@ -218,7 +218,7 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
           id: reminder.id,
         },
         data: {
-          status: ReminderStatus.SENT,
+          status: "SENT",
           resendEmailId: emailResponse.data?.id,
           sentAt: new Date(),
         },
@@ -239,7 +239,7 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
           id: reminder.id,
         },
         data: {
-          status: ReminderStatus.FAILED,
+          status: "FAILED",
         },
       });
 

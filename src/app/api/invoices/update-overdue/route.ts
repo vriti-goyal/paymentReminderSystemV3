@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { InvoiceStatus } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 function startOfToday() {
@@ -18,11 +18,11 @@ export async function POST() {
           lt: today,
         },
         status: {
-          in: [InvoiceStatus.PENDING, InvoiceStatus.PARTIALLY_PAID],
+          in: ["PENDING", "PARTIALLY_PAID"],
         },
       },
       data: {
-        status: InvoiceStatus.OVERDUE,
+        status: "OVERDUE",
       },
     });
 

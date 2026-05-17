@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { Prisma, InvoiceStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -12,18 +12,18 @@ function calculateStatus(amount: number, paidAmount: number, dueDate: Date) {
   invoiceDueDate.setHours(0, 0, 0, 0);
 
   if (paidAmount >= amount) {
-    return InvoiceStatus.PAID;
+    return "PAID";
   }
 
   if (invoiceDueDate < today) {
-    return InvoiceStatus.OVERDUE;
+    return "OVERDUE";
   }
 
   if (paidAmount > 0 && paidAmount < amount) {
-    return InvoiceStatus.PARTIALLY_PAID;
+    return "PARTIALLY_PAID";
   }
 
-  return InvoiceStatus.PENDING;
+  return "PENDING";
 }
 
 function generateInvoiceNumber() {
@@ -42,11 +42,11 @@ async function updateOverdueInvoices(userId: string) {
         lt: today,
       },
       status: {
-        in: [InvoiceStatus.PENDING, InvoiceStatus.PARTIALLY_PAID],
+        in: ["PENDING", "PARTIALLY_PAID"],
       },
     },
     data: {
-      status: InvoiceStatus.OVERDUE,
+      status: "OVERDUE",
     },
   });
 }
@@ -105,7 +105,7 @@ export async function GET(request: Request) {
         userId: session.user.id,
         customerId: customerId ? customerId : undefined,
 
-        status: status ? (status as InvoiceStatus) : undefined,
+        status: status ? status : undefined,
         dueDate: dueDateFilter,
 
         OR: search
