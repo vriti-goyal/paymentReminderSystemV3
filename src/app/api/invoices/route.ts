@@ -105,7 +105,7 @@ export async function GET(request: Request) {
         userId: session.user.id,
         customerId: customerId ? customerId : undefined,
 
-        status: status ? status : undefined,
+        status: status ? (status as any) : undefined,
         dueDate: dueDateFilter,
 
         OR: search

@@ -1,6 +1,6 @@
 # Smart Payment Invoicing & Reminder System
 
-A state-of-the-art billing, ledger management, and automatic payment collection platform built with **Next.js**, **Prisma**, **PostgreSQL**, and **Resend**. Designed to empower freelancers, consultants, and business owners by eliminating the manual hassle of tracking outstanding balances and chasing down client dues.
+A state-of-the-art billing, ledger management, and automatic payment collection platform built with **Next.js**, **Prisma**, **PostgreSQL**, and **Nodemailer (Gmail SMTP)**. Designed to empower freelancers, consultants, and business owners by eliminating the manual hassle of tracking outstanding balances and chasing down client dues.
 
 ---
 
@@ -17,7 +17,7 @@ A state-of-the-art billing, ledger management, and automatic payment collection 
 * **Customer Dossier Drawer:** Open a details drawer to inspect a client's historical invoices, payments, and reminders. Record inline transactions or dispatch reminders directly from the customer drawer.
 
 ### 3. Automated & Manual Multi-Channel Reminders
-* **Premium Email Dispatch:** Utilizes the **Resend API** to deliver beautifully formatted HTML payment reminder templates directly to client inboxes.
+* **Premium Email Dispatch:** Utilizes **Nodemailer** with secure **Gmail SMTP** to deliver beautifully formatted startup-grade HTML payment reminder templates directly to client inboxes.
 * **Automatic Cron Scheduler:** Executes a daily background job `/api/cron/reminders` that:
   * Automatically marks unpaid records past their due dates as `OVERDUE`.
   * Pre-sends automated reminder emails exactly **15 days**, **7 days**, and **2 days** prior to the due date.
@@ -45,7 +45,7 @@ A state-of-the-art billing, ledger management, and automatic payment collection 
 | **Database ORM** | Prisma Client & Prisma Config |
 | **Database** | PostgreSQL |
 | **Authentication** | NextAuth.js / Auth.js (Bcrypt Auth) |
-| **Email Service** | Resend API (HTML E-mails) |
+| **Email Service** | Nodemailer & Gmail SMTP (HTML E-mails) |
 | **Documents Creator** | @react-pdf/renderer (Dynamic client-side PDFs) |
 | **Data Analytics** | Recharts (Visual Graphs) |
 
@@ -146,7 +146,7 @@ model Reminder {
   subject       String
   message       String
   sentTo        String
-  resendEmailId String?         // Resend API reference ID
+  resendEmailId String?         // Nodemailer email message reference ID
   sentAt        DateTime?
   createdAt     DateTime        @default(now())
 }
@@ -190,7 +190,7 @@ paymentReminderSystem/
 │   ├── lib/                    # Shared client utilities
 │   │   ├── auth.ts             # Auth.js configurations
 │   │   ├── prisma.ts           # Cached database client
-│   │   └── resend.ts           # Configured Resend email connection
+│   │   └── email.ts            # Configured Nodemailer SMTP email connection and HTML templates
 │   └── types/                  # TypeScript interface helpers
 ├── next.config.ts              # Next.js bundler guidelines
 ├── prisma.config.ts            # Local Prisma runner options
@@ -225,7 +225,7 @@ paymentReminderSystem/
 
 ### Reminders Hub
 * `GET /api/reminders?search=<query>` - Returns past logs of sent manual/automatic email reminder alerts.
-* `POST /api/reminders` - Manually triggers a beautiful, targeted HTML reminder email via **Resend** and creates a log entry.
+* `POST /api/reminders` - Manually triggers a beautiful, targeted HTML reminder email via **Nodemailer (Gmail SMTP)** and creates a log entry.
 
 ### Background Automated Tasks
 * `GET /api/cron/reminders` - Secured daily trigger. Automatically runs database scans to:
@@ -239,7 +239,7 @@ paymentReminderSystem/
 ### Prerequisites
 * **Node.js** (v18.x or higher)
 * **PostgreSQL** database instance (local or hosted, e.g., Supabase, Neon)
-* **Resend** account API Key (free tier works perfectly)
+* **Gmail account** and a generated **App Password** for SMTP authentication (standard passwords will not work due to security restrictions)
 
 ### Step 1: Clone the Codebase & Install Dependencies
 ```bash
@@ -261,9 +261,9 @@ DATABASE_URL="postgresql://username:password@localhost:5432/payment_reminders?sc
 NEXTAUTH_SECRET="your-super-secret-random-key"
 NEXTAUTH_URL="http://localhost:3000"
 
-# Resend API Credentials
-RESEND_API_KEY="re_1234567890abcdef"
-EMAIL_FROM="Payment Reminder <billing@yourdomain.com>" # Or onboarding@resend.dev for test sandbox
+# Gmail SMTP Credentials
+EMAIL_USER="your-email@gmail.com"
+EMAIL_PASS="your-16-character-app-password"
 
 # Cron job authorization token
 CRON_SECRET="your-super-secure-cron-passphrase"
