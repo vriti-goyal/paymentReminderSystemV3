@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { ReminderStatus, ReminderType } from "@/generated/prisma";
+import { ReminderStatus, ReminderType } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
@@ -29,43 +29,43 @@ export async function GET(request: Request) {
         userId: session.user.id,
         OR: search
           ? [
-              {
-                sentTo: {
+            {
+              sentTo: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              subject: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              customer: {
+                name: {
                   contains: search,
                   mode: "insensitive",
                 },
               },
-              {
-                subject: {
+            },
+            {
+              customer: {
+                email: {
                   contains: search,
                   mode: "insensitive",
                 },
               },
-              {
-                customer: {
-                  name: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
+            },
+            {
+              invoice: {
+                invoiceNumber: {
+                  contains: search,
+                  mode: "insensitive",
                 },
               },
-              {
-                customer: {
-                  email: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              },
-              {
-                invoice: {
-                  invoiceNumber: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              },
-            ]
+            },
+          ]
           : undefined,
       },
       include: {
@@ -164,21 +164,21 @@ ${invoice.user.businessName || invoice.user.name || "Your Business"}`;
           <tr>
             <td style="padding: 8px; border: 1px solid #ddd;"><strong>Amount Due</strong></td>
             <td style="padding: 8px; border: 1px solid #ddd;">${formatCurrency(
-              invoice.balanceAmount
-            )}</td>
+      invoice.balanceAmount
+    )}</td>
           </tr>
           <tr>
             <td style="padding: 8px; border: 1px solid #ddd;"><strong>Due Date</strong></td>
             <td style="padding: 8px; border: 1px solid #ddd;">${formatDate(
-              invoice.dueDate
-            )}</td>
+      invoice.dueDate
+    )}</td>
           </tr>
           <tr>
             <td style="padding: 8px; border: 1px solid #ddd;"><strong>Status</strong></td>
             <td style="padding: 8px; border: 1px solid #ddd;">${invoice.status.replace(
-              "_",
-              " "
-            )}</td>
+      "_",
+      " "
+    )}</td>
           </tr>
         </table>
 

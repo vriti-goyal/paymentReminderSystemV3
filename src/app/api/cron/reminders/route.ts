@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ReminderStatus, ReminderType } from "@/generated/prisma";
+import { ReminderStatus, ReminderType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 

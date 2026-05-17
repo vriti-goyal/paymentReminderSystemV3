@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { InvoiceStatus } from "@/generated/prisma";
+import { InvoiceStatus } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardShell from "@/components/DashboardShell";
@@ -109,12 +109,12 @@ export default async function DashboardPage() {
   ]);
 
   // 1. Total Unpaid Amount (Outstanding Dues)
-  const totalOutstanding = allInvoices.reduce((sum, inv) => 
+  const totalOutstanding = allInvoices.reduce((sum, inv) =>
     inv.status !== InvoiceStatus.CANCELLED ? sum + Number(inv.balanceAmount) : sum, 0
   );
 
   // 2. Total Overdue Amount
-  const totalOverdue = allInvoices.reduce((sum, inv) => 
+  const totalOverdue = allInvoices.reduce((sum, inv) =>
     inv.status === InvoiceStatus.OVERDUE ? sum + Number(inv.balanceAmount) : sum, 0
   );
 
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
   return (
     <DashboardShell user={session.user}>
       <div className="space-y-8">
-        
+
         {/* Section 1: Consolidated Primary Metrics Grid */}
         <div>
           <div className="mb-4">
@@ -168,7 +168,7 @@ export default async function DashboardPage() {
               Overview & Analytics
             </h2>
           </div>
-          
+
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-5 animate-in fade-in duration-300">
             {/* Total Unpaid Card */}
             <div className="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50/50 via-white to-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] hover:shadow-md transition-all duration-300 flex flex-col justify-between">

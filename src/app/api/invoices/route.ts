@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { Prisma, InvoiceStatus } from "@/generated/prisma";
+import { Prisma, InvoiceStatus } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -110,29 +110,29 @@ export async function GET(request: Request) {
 
         OR: search
           ? [
-              {
-                invoiceNumber: {
+            {
+              invoiceNumber: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              customer: {
+                name: {
                   contains: search,
                   mode: "insensitive",
                 },
               },
-              {
-                customer: {
-                  name: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
+            },
+            {
+              customer: {
+                email: {
+                  contains: search,
+                  mode: "insensitive",
                 },
               },
-              {
-                customer: {
-                  email: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              },
-            ]
+            },
+          ]
           : undefined,
       },
       include: {

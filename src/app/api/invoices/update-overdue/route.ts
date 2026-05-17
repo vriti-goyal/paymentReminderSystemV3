@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { InvoiceStatus } from "@/generated/prisma";
+import { InvoiceStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 function startOfToday() {
