@@ -62,8 +62,8 @@ export async function GET(request: Request) {
       },
     });
 
-    const customersWithDue = customers.map((c) => {
-      const totalDue = c.invoices.reduce((sum, inv) => {
+    const customersWithDue = customers.map((c: any) => {
+      const totalDue = c.invoices.reduce((sum: number, inv: any) => {
         if (inv.status !== "PAID" && inv.status !== "CANCELLED") {
           return sum + Number(inv.balanceAmount);
         }
