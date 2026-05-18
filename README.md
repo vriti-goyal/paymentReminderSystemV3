@@ -34,6 +34,12 @@ A state-of-the-art billing, ledger management, and automatic payment collection 
 * **Premium Dynamic Layouts:** Generate and download crisp, beautifully formatted invoice PDFs instantly using `@react-pdf/renderer`.
 * **Complete Metadata Incorporation:** Generated documents include itemized descriptions, total amounts billed, total amounts paid, balance dues, issued dates, and dynamic, color-coded status badges.
 
+### 6. Automated Cron-Based Reminder Scheduling
+* Intelligent Background Automation: Built a secure cron-driven workflow to automatically process invoice lifecycle events, including overdue status updates and scheduled payment follow-ups without manual intervention.
+* Multi-Stage Reminder Engine: Configured dynamic reminder scheduling with long-term reminders every 6 months before due dates, along with high-priority alerts at 15 days and 2 days before payment deadlines.
+* Duplicate Prevention & Activity Tracking: Implemented database-backed reminder logging to prevent duplicate email sends while maintaining complete audit trails with PENDING, SENT, and FAILED delivery states.
+* Production-Ready Email Pipeline: Integrated transactional email delivery using Resend with secure bearer-authenticated cron endpoints and automated HTML email generation for professional customer communication.
+
 ---
 
 ## 🛠 Tech Stack
